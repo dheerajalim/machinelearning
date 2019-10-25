@@ -1,7 +1,15 @@
+"""
+Comprehensive range of techniques :
+1 . Using scaling on the KNN model to see the improvement in results
+
+"""
+
 from knn_model import *
+from part_1_oop import BasicKnn
+from part_2_a import WeightedKnn
 
 
-class WeightedKnn:
+class ScaledKnn:
 
     def __init__(self, train_file, test_file):
         """
@@ -10,11 +18,11 @@ class WeightedKnn:
         :param _kvalue: The K value for the KNN model
 
         """
-
         self.knn_model = Knnmodel(train_file, test_file)
         self.knn_model.dataset(10)
-        self.results = np.apply_along_axis(self.knn_model.calculateDistances, 1, self.knn_model.test_data,
-                                           self.knn_model.train_data)
+        self.knn_model.dataset_scaling()
+        self.results = np.apply_along_axis(self.knn_model.calculateDistances, 1, self.knn_model.scaled_test_data,
+                                           self.knn_model.scaled_train_data)
 
     def prediction(self, k_value=1, n_value=1):
         """
@@ -31,15 +39,19 @@ class WeightedKnn:
             return
 
         try:
+            percentage = self.knn_model.basic_knn_percentage(self.results, k_value)
+            print(f'The Scaled Basic KNN model with k = {k_value}, has and accuracy of {round(percentage, 2)} %')
             percentage = self.knn_model.weighted_knn_percentage(self.results, k_value, n_value)
-            print(f'The Weighted KNN model with k = {k_value} and n = {n_value},'
+            print(f'The Scaled Weighted KNN model with k = {k_value} and n = {n_value},'
                   f' has and accuracy of {round(percentage, 2)} %')
         except Exception as e:
             print(f'Error finding accuracy for K = {k_value}, error {e}')
 
 
 if __name__ == '__main__':
-    weighted_knn = WeightedKnn('trainingData_classification.csv', 'testData_classification.csv')
-    for k in range(1, 12):
-        weighted_knn.prediction(k)
-
+    scaled_knn = ScaledKnn('trainingData_classification.csv', 'testData_classification.csv')
+    scaled_knn.prediction(10,11)
+    # basic_knn = BasicKnn('trainingData_classification.csv', 'testData_classification.csv')
+    # basic_knn.prediction(1)
+    # weighted_knn = WeightedKnn('trainingData_classification.csv', 'testData_classification.csv')
+    # weighted_knn.prediction(1)

@@ -1,9 +1,14 @@
 import numpy as np
 
 
+class InvalidKValue(Exception):
+    def __init__(self, message):
+        self.message = message;
+
+
 class Knnmodel:
 
-    def __init__(self, train_file, test_file, _kvalue):
+    def __init__(self, train_file, test_file):
         """
 
         :param train_file: The filename for the training instance
@@ -13,11 +18,13 @@ class Knnmodel:
         """
         self.train_dataset = np.genfromtxt(train_file, delimiter=',')  # Reads the training dataset
         self.test_dataset = np.genfromtxt(test_file, delimiter=',')  # Reads the test Dataset
-        self.k_value = _kvalue  # Sets the user input k value
+        # self.k_value = _kvalue  # Sets the user input k value
         self.train_data = np.empty  # An empty numpy array to store train data features
         self.train_class = np.empty  # An empty numpy array to store train data class
         self.test_data = np.empty  # An empty numpy array to store test data features
         self.test_class = np.empty  # An empty numpy array to store test data class
+        self.scaled_train_data = np.empty   # An empty numpy array to store scaled train data
+        self.scaled_test_data = np.empty    # An empty numpy array to store scaled test data
 
     def dataset(self, class_column):
         """
@@ -25,12 +32,25 @@ class Knnmodel:
         :param class_column: The number of feature columns
         :return: None
         """
-
+        print('Building KNN Model...')
         self.train_data = np.delete(self.train_dataset, class_column, axis=1)  # Contains the training features
         self.train_class = self.train_dataset[:, class_column]  # Contains the training class
 
         self.test_data = np.delete(self.test_dataset, class_column, axis=1)  # Contains the test features
         self.test_class = self.test_dataset[:, class_column]  # Contains the test class
+
+    def dataset_scaling(self):
+        """
+
+        :return: Returns the scaled version of the dataset
+        """
+        print('Scaling Dataset...')
+        scaling_train_data = self.train_data.copy()
+        scaling_test_data = self.test_data.copy()
+        min_features_train = np.amin(scaling_train_data, axis=0)
+        max_features_train = np.amax(scaling_train_data, axis=0)
+        self.scaled_train_data = (scaling_train_data - min_features_train) / (max_features_train - min_features_train)
+        self.scaled_test_data = (scaling_test_data - min_features_train) / (max_features_train - min_features_train)
 
     def calculateDistances(self, query_instance, feature_list):
         """
@@ -52,14 +72,16 @@ class Knnmodel:
         """
         return np.bincount(prediction).argmax()
 
-    def basic_knn_percentage(self, results):
+    def basic_knn_percentage(self, results, k_value):
         """
         Calculates the accuracy of Basic KNN Model
+        :param k_value:
         :param results: Numpy array of Euclidean Distances and Sorted Distances
         :return: Accuracy of the model
         """
+
         sorted_indices = results[:, 1].astype('int32')  # Array of sorted indices based on euclidean weights
-        k_nearest = sorted_indices[:, :self.k_value]  # Selection of K indices from the sorted_indices
+        k_nearest = sorted_indices[:, :k_value]  # Selection of K indices from the sorted_indices
         # Numpy array to store the classes predicted for the test data
         prediction = self.train_class[k_nearest].astype('int32')
         # Finding the mode of the classes in K neighbours
@@ -78,50 +100,38 @@ class Knnmodel:
         :param distances_k_nearest: Euclidean Distances of the K predicted classes
         :return: Numpy array of predicted classes on test data after inverse distance calculation
         """
-        find_res = np.zeros(shape=(1000,))  # Creating an empty numpy array of size 1000 to store the predicted class
-
+        find_res = np.zeros(shape=(len(self.test_data),))  # Creating an empty numpy array of size 1000 to store the predicted class
+        unique_classes = np.unique(prediction)
+        distance_inverse = 1 / pow(distances_k_nearest, n_value)
         for i in range(0, len(prediction)):
-            class0 = 0
-            class1 = 0
-            class2 = 0
+            classification_list = []
+            for j in unique_classes:
+                classes = np.where(prediction[i] == j)
+                sum_inverse_distance = distance_inverse[i][classes]
+                classification_list.append(np.sum(sum_inverse_distance))
 
-            for j in range(0, self.k_value):
-                if prediction[i][j] == 0:
-                    class0 += (1 / pow(distances_k_nearest[i][j], n_value))
-                elif prediction[i][j] == 1:
-                    class1 += (1 / pow(distances_k_nearest[i][j], n_value))
-                elif prediction[i][j] == 2:
-                    class2 += (1 / pow(distances_k_nearest[i][j], n_value))
-
-            if class0 > class1 and class0 > class2:
-                find_res[i] = 0
-
-            elif class1 > class0 and class1 > class2:
-                find_res[i] = 1
-
-            elif class2 > class0 and class2 > class1:
-                find_res[i] = 2
+            find_res[i] = classification_list.index(max(classification_list))
 
         return find_res
 
-    def weighted_knn_percentage(self, results, n_value):
+    def weighted_knn_percentage(self, results, k_value, n_value):
 
         """
         Calculates the accuracy of weighted KNN model
+        :param k_value:
         :param n_value: Contains the value of n for the inverse power calculation
         :param results: Numpy array of Euclidean Distances and Sorted Distances
         :return: Accuracy of the model
         """
-
         sorted_indicies = results[:, 1].astype('int32')  # Array of sorted indices based on euclidean weights
-        k_nearest = sorted_indicies[:, :self.k_value]   # Selection of K indices from the sorted_indices
+        k_nearest = sorted_indicies[:, :k_value]   # Selection of K indices from the sorted_indices
         """
         Sorting the Euclidean distance array and finding the K distances from that
         """
         distances_original = results[:, 0]
         distances = distances_original.copy()
         distances.sort(axis=1)
-        distances_k_nearest = distances[:, :self.k_value]
+        distances_k_nearest = distances[:, :k_value]
 
         # Numpy array to store the classes predicted for the test data
         prediction = self.train_class[k_nearest].astype('int32')
@@ -132,3 +142,49 @@ class Knnmodel:
         # The percentage of correct prediction
         percentage = (correct_prediction / len(self.test_dataset)) * 100
         return percentage
+
+    def weighted_regression_knn_percentage(self, results, k_value, n_value):
+
+        """
+        Calculates the accuracy of weighted KNN model
+        :param k_value:
+        :param n_value: Contains the value of n for the inverse power calculation
+        :param results: Numpy array of Euclidean Distances and Sorted Distances
+        :return: Accuracy of the model
+        """
+
+        sorted_indicies = results[:, 1].astype('int32')  # Array of sorted indices based on euclidean weights
+        k_nearest = sorted_indicies[:, :k_value]   # Selection of K indices from the sorted_indices
+        """
+        Sorting the Euclidean distance array and finding the K distances from that
+        """
+        distances_original = results[:, 0]
+        distances = distances_original.copy()
+        distances.sort(axis=1)
+        distances_k_nearest = distances[:, :k_value]
+
+        # Numpy array to store the regression values predicted for the test data
+        prediction = self.train_class[k_nearest]
+        # Calculation of the distance weighted regression values
+        try:
+            find_res = np.divide(np.sum(np.multiply(1 / pow(distances_k_nearest, n_value), prediction), axis=1),
+                                 np.sum(1 / pow(distances_k_nearest, n_value), axis=1))
+
+        except (ZeroDivisionError,ValueError, TypeError) as e:
+            print(f'Unable to calculate the predictions , error : {e}')
+
+
+        """The R 2 coefficient calculation"""
+        r_square = self.r_square_coefficient(find_res)
+        percentage = r_square * 100
+        return percentage
+
+    def r_square_coefficient(self,find_res):
+        # Sum of squared residuals. The numerator
+        ssr = np.sum(np.square(np.subtract(find_res, self.test_class)))
+        # Total sum of squares. The Denominator
+        sst = np.sum(np.square(np.subtract(self.test_class, np.average(self.test_class))))
+        # R square coefficient value
+        r_square = 1-(ssr/sst)
+
+        return r_square
