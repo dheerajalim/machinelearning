@@ -1,5 +1,9 @@
+"""
+Author: Dheeraj Alimchandani
+Student ID : R00182505
+"""
+
 from knn_model import *
-import time
 
 
 class WeightedRegressionKnn:
@@ -8,13 +12,13 @@ class WeightedRegressionKnn:
         """
         :param train_file: The filename for the training instance
         :param test_file:  The filename  for  the test instance
-        :param _kvalue: The K value for the KNN model
+        :param _plotgraph:  Boolean for plotting graph
 
         """
 
-        self.knn_model = Knnmodel(train_file, test_file)
-        self.knn_model.dataset(12)
-
+        self.knn_model = Knnmodel(train_file, test_file)    # Initializing KNN Model
+        self.knn_model.dataset(12)  # Creating the Dataset
+        # Calculating the Distances
         self.results = np.apply_along_axis(self.knn_model.calculateDistances, 1, self.knn_model.test_data,
                                            self.knn_model.train_data)
         self.accuracy_graph_values = []
@@ -25,6 +29,8 @@ class WeightedRegressionKnn:
         """
         Calculates the euclidean distance between each query instance and the train dataset and returns accuracy
         prediction
+        :param k_value: k nearest neighbours
+        :param n_value: Contains the value of n for the inverse power calculation
         :return:  Accuracy of the prediction
         """
         try:
@@ -49,13 +55,12 @@ class WeightedRegressionKnn:
 
 
 if __name__ == '__main__':
-    PLOT_GRAPH = True
-    LEGEND = []
-    n = 2
-    LIMIT = 60
-    weighted_regression_knn = WeightedRegressionKnn('trainingData_regression.csv', 'testData_regression.csv', _plotgraph=PLOT_GRAPH)
-    for k in range(1, LIMIT + 1):
-        weighted_regression_knn.prediction(k, n)
+    # Initializing the  weighted_regression_knn Model
+    weighted_regression_knn = WeightedRegressionKnn(Parameters.TRAIN_DATA_REGRESSION,
+                                                    Parameters.TEST_DATA_REGRESSION,
+                                                    _plotgraph=Parameters.PLOT_GRAPH)
+    for k in range(1, Parameters.LIMIT + 1):
+        weighted_regression_knn.prediction(k, Parameters.n)
 
     PlotGraph.plot_graph(weighted_regression_knn.k_graph_values, weighted_regression_knn.accuracy_graph_values)
-    PlotGraph.show_graph(LEGEND, filename='Regression_graph', n_value= n)
+    PlotGraph.show_graph(Parameters.LEGEND, filename='Regression_graph', n_value= Parameters.n)

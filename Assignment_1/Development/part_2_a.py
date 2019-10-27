@@ -1,3 +1,8 @@
+"""
+Author: Dheeraj Alimchandani
+Student ID : R00182505
+"""
+
 from knn_model import *
 
 
@@ -7,12 +12,13 @@ class WeightedKnn:
         """
         :param train_file: The filename for the training instance
         :param test_file:  The filename  for  the test instance
-        :param _kvalue: The K value for the KNN model
+        :param _plotgraph:  Boolean for plotting graph
 
         """
 
-        self.knn_model = Knnmodel(train_file, test_file)
-        self.knn_model.dataset(10)
+        self.knn_model = Knnmodel(train_file, test_file)     # Initializing KNN Model
+        self.knn_model.dataset(10)  # Creating the Dataset
+        # Calculating the Distances
         self.results = np.apply_along_axis(self.knn_model.calculateDistances, 1, self.knn_model.test_data,
                                            self.knn_model.train_data)
         self.accuracy_graph_values = []
@@ -23,7 +29,9 @@ class WeightedKnn:
         """
         Calculates the euclidean distance between each query instance and the train dataset and returns accuracy
         prediction
-        :return:  Accuracy of the prediction
+        :param k_value: k nearest neighbours
+        :param n_value: Contains the value of n for the inverse power calculation
+        :return: Accuracy of the prediction
         """
         try:
             if k_value < 1 :
@@ -34,7 +42,7 @@ class WeightedKnn:
             return
 
         try:
-            percentage = self.knn_model.weighted_knn_percentage(self.results, k_value, n_value)
+            percentage = self.knn_model.weighted_knn_percentage(self.results, k_value, n_value)    # Accuracy Percentage
             print(f'The Weighted KNN model with k = {k_value} and n = {n_value},'
                   f' has an accuracy of {round(percentage, 2)} %')
             if self.plot_graph:
@@ -46,14 +54,12 @@ class WeightedKnn:
 
 
 if __name__ == '__main__':
-    PLOT_GRAPH = True
-    LEGEND = []
-    n = 2
-    LIMIT = 60
-    weighted_knn = WeightedKnn('trainingData_classification.csv', 'testData_classification.csv',  _plotgraph=PLOT_GRAPH)
-    for k in range(1, LIMIT+1):
-        weighted_knn.prediction(k,n)
+    # Initializing the weighted_knn Model
+    weighted_knn = WeightedKnn(Parameters.TRAIN_DATA_CLASSIFICATION, Parameters.TEST_DATA_CLASSIFICATION,
+                               _plotgraph=Parameters.PLOT_GRAPH)
+    for k in range(1, Parameters.LIMIT+1):
+        weighted_knn.prediction(k,Parameters.n)
 
     PlotGraph.plot_graph(weighted_knn.k_graph_values, weighted_knn.accuracy_graph_values)
-    PlotGraph.show_graph(LEGEND, n_value=n)
+    PlotGraph.show_graph(Parameters.LEGEND, n_value=Parameters.n)
 

@@ -1,25 +1,27 @@
+"""
+Author: Dheeraj Alimchandani
+Student ID : R00182505
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
+from Parameters import *
 
 
-class InvalidKValue(Exception):
+class InvalidKValue(Exception):     # Custom Error message
     def __init__(self, message):
-        self.message = message;
+        self.message = message
 
 
-class Knnmodel:
+class Knnmodel:         # building the KNN Model
 
     def __init__(self, train_file, test_file):
         """
-
         :param train_file: The filename for the training instance
         :param test_file:  The filename  for  the test instance
-        :param _kvalue: The K value for the KNN model
-
         """
         self.train_dataset = np.genfromtxt(train_file, delimiter=',')  # Reads the training dataset
         self.test_dataset = np.genfromtxt(test_file, delimiter=',')  # Reads the test Dataset
-        # self.k_value = _kvalue  # Sets the user input k value
         self.train_data = np.empty  # An empty numpy array to store train data features
         self.train_class = np.empty  # An empty numpy array to store train data class
         self.test_data = np.empty  # An empty numpy array to store test data features
@@ -42,20 +44,21 @@ class Knnmodel:
 
     def dataset_scaling(self):
         """
-
+        This methods scales the database i.e. perform Normalization of the dataset for both training and test dataset
         :return: Returns the scaled version of the dataset
         """
         print('Scaling Dataset...')
         scaling_train_data = self.train_data.copy()
         scaling_test_data = self.test_data.copy()
-        min_features_train = np.amin(scaling_train_data, axis=0)
-        max_features_train = np.amax(scaling_train_data, axis=0)
+        min_features_train = np.amin(scaling_train_data, axis=0)        # Finding the min of the feature
+        max_features_train = np.amax(scaling_train_data, axis=0)        # Finding the max of the feature
+
+        # Scaling dataset for test and train
         self.scaled_train_data = (scaling_train_data - min_features_train) / (max_features_train - min_features_train)
         self.scaled_test_data = (scaling_test_data - min_features_train) / (max_features_train - min_features_train)
 
     def manhattanDistance(self, query_instance, feature_list):
         """
-
         :param query_instance: Contains the single instance of the test data (1D Numpy Array)
         :param feature_list:  Contains all the features of the training data (2D Numpy array)
         :return: Manhatan distance between the training and query Instances , Sorted Indices Array
@@ -67,7 +70,6 @@ class Knnmodel:
 
     def calculateDistances(self, query_instance, feature_list):
         """
-
         :param query_instance: Contains the single instance of the test data (1D Numpy Array)
         :param feature_list:  Contains all the features of the training data (2D Numpy array)
         :return: Euclidean distance between the training and query Instances , Sorted Indices Array
@@ -107,23 +109,23 @@ class Knnmodel:
 
     def weighted_knn_inverse_distance(self, prediction, distances_k_nearest, n_value=1):
         """
-
         :param n_value: Contains the value of n for the inverse power calculation
         :param prediction: K Predicted classes of the test dataset
         :param distances_k_nearest: Euclidean Distances of the K predicted classes
         :return: Numpy array of predicted classes on test data after inverse distance calculation
         """
-        find_res = np.zeros(shape=(len(self.test_data),))  # Creating an empty numpy array of size 1000 to store the predicted class
-        unique_classes = np.unique(prediction)
-        distance_inverse = 1 / pow(distances_k_nearest, n_value)
+        # Creating an empty numpy array of size 1000 to store the predicted class
+        find_res = np.zeros(shape=(len(self.test_data),))
+        unique_classes = np.unique(prediction)  # Fetching the unique classes from the prediction array
+        distance_inverse = 1 / pow(distances_k_nearest, n_value)    # Calculating inverse of distance
         for i in range(0, len(prediction)):
             classification_list = []
             for j in unique_classes:
-                classes = np.where(prediction[i] == j)
-                sum_inverse_distance = distance_inverse[i][classes]
-                classification_list.append(np.sum(sum_inverse_distance))
+                classes = np.where(prediction[i] == j)     # Returns the index of the matched class in prediction
+                sum_inverse_distance = distance_inverse[i][classes]     # Extract the inverse distances for indices
+                classification_list.append(np.sum(sum_inverse_distance))  # Add sum of classed pred inverse distances
 
-            find_res[i] = classification_list.index(max(classification_list))
+            find_res[i] = classification_list.index(max(classification_list))   # Adds the predicted value for instance
 
         return find_res
 
@@ -131,7 +133,7 @@ class Knnmodel:
 
         """
         Calculates the accuracy of weighted KNN model
-        :param k_value:
+        :param k_value: k nearest neighbours
         :param n_value: Contains the value of n for the inverse power calculation
         :param results: Numpy array of Euclidean Distances and Sorted Distances
         :return: Accuracy of the model
@@ -160,7 +162,7 @@ class Knnmodel:
 
         """
         Calculates the accuracy of weighted KNN model
-        :param k_value:
+        :param k_value: k nearest neighbours
         :param n_value: Contains the value of n for the inverse power calculation
         :param results: Numpy array of Euclidean Distances and Sorted Distances
         :return: Accuracy of the model
@@ -186,7 +188,6 @@ class Knnmodel:
         except (ZeroDivisionError,ValueError, TypeError) as e:
             print(f'Unable to calculate the predictions , error : {e}')
 
-
         """The R 2 coefficient calculation"""
         r_square = self.r_square_coefficient(find_res)
         percentage = r_square * 100
@@ -203,7 +204,7 @@ class Knnmodel:
         return r_square
 
 
-class PlotGraph:
+class PlotGraph:        # Graph Plotting
 
     def __init__(self):
         pass

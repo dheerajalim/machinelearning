@@ -1,4 +1,7 @@
 """
+Author: Dheeraj Alimchandani
+Student ID : R00182505
+
 Comprehensive range of techniques :
 1 . Using scaling on the KNN model to see the improvement in results
     Scaling on Basic KNN
@@ -17,28 +20,30 @@ class ScaledKnn:
         """
         :param train_file: The filename for the training instance
         :param test_file:  The filename  for  the test instance
-        :param _kvalue: The K value for the KNN model
-
+        :param _scaling: Boolean for scaling
+        :param _distance:  type of Distance Metric
+        :param _plotgraph:  Boolean for plotting graph
         """
-        self.knn_model = Knnmodel(train_file, test_file)
-        self.knn_model.dataset(10)
+
+        self.knn_model = Knnmodel(train_file, test_file)    # Initializing KNN Model
+        self.knn_model.dataset(10)  # Creating the Dataset
         self.scaling = _scaling
         self.distance = _distance
 
         if _scaling:
-            self.knn_model.dataset_scaling()
-            if _distance == 'E':
+            self.knn_model.dataset_scaling()    # Scaling the Dataset
+            if _distance == 'E':    # If Euclidean Distance with Scaling
                 self.results = np.apply_along_axis(self.knn_model.calculateDistances, 1,
                                                    self.knn_model.scaled_test_data,
                                                    self.knn_model.scaled_train_data)
-            elif _distance == 'M':
+            elif _distance == 'M':  # If Manhattan Distance with Scaling
                 self.results = np.apply_along_axis(self.knn_model.manhattanDistance, 1, self.knn_model.scaled_test_data,
                                                    self.knn_model.scaled_train_data)
         else:
-            if _distance == 'E':
+            if _distance == 'E':    # If Euclidean Distance without Scaling
                 self.results = np.apply_along_axis(self.knn_model.calculateDistances, 1, self.knn_model.test_data,
                                                    self.knn_model.train_data)
-            elif _distance == 'M':
+            elif _distance == 'M':  # If Manhattan Distance without Scaling
                 self.results = np.apply_along_axis(self.knn_model.manhattanDistance, 1, self.knn_model.test_data,
                                                    self.knn_model.train_data)
 
@@ -50,8 +55,12 @@ class ScaledKnn:
         """
         Calculates the euclidean distance between each query instance and the train dataset and returns accuracy
         prediction
-        :return:  Accuracy of the prediction
+        :param k_value: k nearest neighbours
+        :param n_value: Contains the value of n for the inverse power calculation
+        :param type:  Basic or Weighted
+        :return: Accuracy of the prediction
         """
+
         try:
             if k_value < 1:
                 raise InvalidKValue(k_value)
@@ -99,39 +108,36 @@ def run_model(model, limit, type, n_value=1):
 
 
 if __name__ == '__main__':
-    PLOT_GRAPH = True
 
-    LEGEND = []
-    LIMIT = 60
-    n = 2
+    train = Parameters.TRAIN_DATA_CLASSIFICATION
+    test = Parameters.TEST_DATA_CLASSIFICATION
+    scaled_knn = ScaledKnn(train, test, _scaling=False,
+                           _distance='E', _plotgraph=Parameters.PLOT_GRAPH)
+    Parameters.LEGEND.append('Unscaled Basic KNN Euclidean')
+    run_model(scaled_knn, Parameters.LIMIT, 'basic')
 
-    scaled_knn = ScaledKnn('trainingData_classification.csv', 'testData_classification.csv', _scaling=False,
-                           _distance='E', _plotgraph=PLOT_GRAPH)
-    LEGEND.append('Unscaled Basic KNN Euclidean')
-    run_model(scaled_knn, LIMIT, 'basic')
+    scaled_knn = ScaledKnn(train, test, _scaling=True,
+                           _distance='E', _plotgraph=Parameters.PLOT_GRAPH)
+    Parameters.LEGEND.append('Scaled Basic KNN Euclidean')
+    run_model(scaled_knn, Parameters.LIMIT, 'basic')
+    PlotGraph.show_graph(Parameters.LEGEND, filename='Scaled_basic')
 
-    scaled_knn = ScaledKnn('trainingData_classification.csv', 'testData_classification.csv', _scaling=True,
-                           _distance='E', _plotgraph=PLOT_GRAPH)
-    LEGEND.append('Scaled Basic KNN Euclidean')
-    run_model(scaled_knn, LIMIT, 'basic')
-    PlotGraph.show_graph(LEGEND, filename='Scaled_basic')
+    Parameters.LEGEND = []
+    scaled_knn = ScaledKnn(train, test, _scaling=False,
+                           _distance='E', _plotgraph=Parameters.PLOT_GRAPH)
+    Parameters.LEGEND.append('Unscaled Weighted KNN Euclidean')
+    run_model(scaled_knn, Parameters.LIMIT, 'weighted', Parameters.n)
 
-    LEGEND = []
-    scaled_knn = ScaledKnn('trainingData_classification.csv', 'testData_classification.csv', _scaling=False,
-                           _distance='E', _plotgraph=PLOT_GRAPH)
-    LEGEND.append('Unscaled Weighted KNN Euclidean')
-    run_model(scaled_knn, LIMIT, 'weighted', n)
-
-    scaled_knn = ScaledKnn('trainingData_classification.csv', 'testData_classification.csv', _scaling=True,
-                           _distance='E', _plotgraph=PLOT_GRAPH)
-    LEGEND.append('Scaled Weighted KNN Euclidean')
-    run_model(scaled_knn, LIMIT, 'weighted', n)
-    PlotGraph.show_graph(LEGEND, filename='Scaled_weighted', n_value=n)
+    scaled_knn = ScaledKnn(train, test, _scaling=True,
+                           _distance='E', _plotgraph=Parameters.PLOT_GRAPH)
+    Parameters.LEGEND.append('Scaled Weighted KNN Euclidean')
+    run_model(scaled_knn, Parameters.LIMIT, 'weighted', Parameters.n)
+    PlotGraph.show_graph(Parameters.LEGEND, filename='Scaled_weighted', n_value=Parameters.n)
 
     """
     ######==========Uncomment the below code to generate the graphs in section 3.1 of report.=====######
     """
-
+    #
     # """
     # I ) Applying performance techniques on:
     # 1. Unscaled Basic KNN with K values Euclidean Distance
@@ -141,27 +147,27 @@ if __name__ == '__main__':
     #
     # """
     #
-    # scaled_knn = ScaledKnn('trainingData_classification.csv', 'testData_classification.csv', _scaling=False,
-    #                        _distance='E', _plotgraph=PLOT_GRAPH)
-    # LEGEND.append('Unscaled Basic KNN Euclidean')
-    # run_model(scaled_knn, LIMIT, 'basic')
+    # scaled_knn = ScaledKnn(train, test, _scaling=False,
+    #                        _distance='E', _plotgraph=Parameters.PLOT_GRAPH)
+    # Parameters.LEGEND.append('Unscaled Basic KNN Euclidean')
+    # run_model(scaled_knn, Parameters.LIMIT, 'basic')
     #
-    # scaled_knn = ScaledKnn('trainingData_classification.csv', 'testData_classification.csv', _scaling=False,
-    #                        _distance='M', _plotgraph=PLOT_GRAPH)
-    # LEGEND.append('Unscaled Basic KNN Manhattan')
-    # run_model(scaled_knn, LIMIT, 'basic')
+    # scaled_knn = ScaledKnn(train, test, _scaling=False,
+    #                        _distance='M', _plotgraph=Parameters.PLOT_GRAPH)
+    # Parameters.LEGEND.append('Unscaled Basic KNN Manhattan')
+    # run_model(scaled_knn, Parameters.LIMIT, 'basic')
     #
-    # scaled_knn = ScaledKnn('trainingData_classification.csv', 'testData_classification.csv', _scaling=True,
-    #                        _distance='E', _plotgraph=PLOT_GRAPH)
-    # LEGEND.append('Scaled Basic KNN Euclidean')
-    # run_model(scaled_knn, LIMIT, 'basic')
+    # scaled_knn = ScaledKnn(train, test, _scaling=True,
+    #                        _distance='E', _plotgraph=Parameters.PLOT_GRAPH)
+    # Parameters.LEGEND.append('Scaled Basic KNN Euclidean')
+    # run_model(scaled_knn, Parameters.LIMIT, 'basic')
     #
-    # scaled_knn = ScaledKnn('trainingData_classification.csv', 'testData_classification.csv', _scaling=True,
-    #                        _distance='M', _plotgraph=PLOT_GRAPH)
-    # LEGEND.append('Scaled Basic KNN Manhattan')
-    # run_model(scaled_knn, LIMIT, 'basic')
+    # scaled_knn = ScaledKnn(train, test, _scaling=True,
+    #                        _distance='M', _plotgraph=Parameters.PLOT_GRAPH)
+    # Parameters.LEGEND.append('Scaled Basic KNN Manhattan')
+    # run_model(scaled_knn, Parameters.LIMIT, 'basic')
     #
-    # PlotGraph.show_graph(LEGEND, filename='All_basic')
+    # PlotGraph.show_graph(Parameters.LEGEND, filename='All_basic')
     #
     # """
     # II ) Applying performance techniques on:
@@ -171,26 +177,26 @@ if __name__ == '__main__':
     # 4. Scaled Weighted KNN with K values Manhattan Distance
     #
     # """
-    # LEGEND = []
-    # scaled_knn = ScaledKnn('trainingData_classification.csv', 'testData_classification.csv', _scaling=False,
-    #                        _distance='E', _plotgraph=PLOT_GRAPH)
-    # LEGEND.append('Unscaled Weighted KNN Euclidean')
-    # run_model(scaled_knn, LIMIT, 'weighted', n)
+    # Parameters.LEGEND = []
+    # scaled_knn = ScaledKnn(train, test, _scaling=False,
+    #                        _distance='E', _plotgraph=Parameters.PLOT_GRAPH)
+    # Parameters.LEGEND.append('Unscaled Weighted KNN Euclidean')
+    # run_model(scaled_knn, Parameters.LIMIT, 'weighted', Parameters.n)
     #
-    # scaled_knn = ScaledKnn('trainingData_classification.csv', 'testData_classification.csv', _scaling=False,
-    #                        _distance='M', _plotgraph=PLOT_GRAPH)
-    # LEGEND.append('Unscaled Weighted KNN Manhattan')
-    # run_model(scaled_knn, LIMIT, 'weighted', n)
+    # scaled_knn = ScaledKnn(train, test, _scaling=False,
+    #                        _distance='M', _plotgraph=Parameters.PLOT_GRAPH)
+    # Parameters.LEGEND.append('Unscaled Weighted KNN Manhattan')
+    # run_model(scaled_knn, Parameters.LIMIT, 'weighted', Parameters.n)
     #
-    # scaled_knn = ScaledKnn('trainingData_classification.csv', 'testData_classification.csv', _scaling=True,
-    #                        _distance='E', _plotgraph=PLOT_GRAPH)
-    # LEGEND.append('Scaled weighted KNN Euclidean')
-    # run_model(scaled_knn, LIMIT, 'weighted', n)
+    # scaled_knn = ScaledKnn(train, test, _scaling=True,
+    #                        _distance='E', _plotgraph=Parameters.PLOT_GRAPH)
+    # Parameters.LEGEND.append('Scaled weighted KNN Euclidean')
+    # run_model(scaled_knn, Parameters.LIMIT, 'weighted', Parameters.n)
     #
-    # scaled_knn = ScaledKnn('trainingData_classification.csv', 'testData_classification.csv', _scaling=True,
-    #                        _distance='M', _plotgraph=PLOT_GRAPH)
-    # LEGEND.append('Scaled weighted KNN Manhattan')
-    # run_model(scaled_knn, LIMIT, 'weighted', n)
+    # scaled_knn = ScaledKnn(train, test, _scaling=True,
+    #                        _distance='M', _plotgraph=Parameters.PLOT_GRAPH)
+    # Parameters.LEGEND.append('Scaled weighted KNN Manhattan')
+    # run_model(scaled_knn, Parameters.LIMIT, 'weighted', Parameters.n)
     #
-    # PlotGraph.show_graph(LEGEND, filename='All_weighted',n_value=n)
-
+    # PlotGraph.show_graph(Parameters.LEGEND, filename='All_weighted',n_value=Parameters.n)
+    #

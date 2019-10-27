@@ -1,3 +1,8 @@
+"""
+Author: Dheeraj Alimchandani
+Student ID : R00182505
+"""
+
 from knn_model import *
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
@@ -12,29 +17,34 @@ class FeatureSelectionKnn:
         :param _kvalue: The K value for the KNN model
 
         """
-        self.knn_model = Knnmodel(train_file, test_file)
-        self.knn_model.dataset(10)
-        self.train_data_updated = np.empty
-        self.test_data_updated = np.empty
+        self.knn_model = Knnmodel(train_file, test_file)    # Initializing KNN Model
+        self.knn_model.dataset(10)  # Creating the Dataset
+        self.train_data_updated = np.empty  # For holding the training dataset after feature selection
+        self.test_data_updated = np.empty   # For holding the test dataset after feature selection
         self.results = None
 
         self.accuracy_graph_values = []
         self.f_graph_values = []
         self.plot_graph = _plotgraph
 
+    """
+    Using Univariate Method with SelecKBest class and chi2 method of scikit learn to perfrom 
+    feature selection
+    """
     def feature_selection(self,number_features=5):
         selector = SelectKBest(chi2, k=number_features)
         self.train_data_updated = selector.fit_transform(self.knn_model.train_data, self.knn_model.train_class)
-        feature_names = [i for i in range(0,len(self.knn_model.test_data[0]))]
+        feature_names = [i for i in range(0,len(self.knn_model.test_data[0]))]  # Contains the columns of the features
 
-        mask = selector.get_support()  # list of booleans
+        selected_features = selector.get_support()  # generates a list of booleans
         new_features = []  # The list of your K best features
-        for bool, feature in zip(mask, feature_names):
-            if bool:
+        for selected, feature in zip(selected_features, feature_names):  # Getting a list of selected features
+            if selected:
                 new_features.append(feature)
 
+        # Generating Test Data based on selected features
         self.test_data_updated = self.knn_model.test_data[:, new_features]
-        self.distance_calculation()
+        self.distance_calculation()     # Distance Calculation
         self.f_graph_values.append(len(new_features))
         print(f'Number of features selected : {len(new_features)}')
         print(f'Selected features [Columns]: {new_features}')
@@ -47,6 +57,7 @@ class FeatureSelectionKnn:
         """
         Calculates the euclidean distance between each query instance and the train dataset and returns accuracy
         prediction
+        :param k_value: The K value for the KNN model
         :return:  Accuracy of the prediction
         """
         try:
@@ -67,13 +78,11 @@ class FeatureSelectionKnn:
 
 
 if __name__ == '__main__':
-    PLOT_GRAPH = True
-    LIMIT = 10
-    basic_feature_knn = FeatureSelectionKnn('trainingData_classification.csv', 'testData_classification.csv',  _plotgraph=PLOT_GRAPH)
-
-    for f in range(1,LIMIT+1):
+    basic_feature_knn = FeatureSelectionKnn(Parameters.TRAIN_DATA_CLASSIFICATION, Parameters.TEST_DATA_CLASSIFICATION,
+                                            _plotgraph=Parameters.PLOT_GRAPH)
+    for f in range(1, Parameters.FEATURES+1):
         basic_feature_knn.feature_selection(f)
         basic_feature_knn.prediction(9)
 
     PlotGraph.plot_graph(basic_feature_knn.f_graph_values, basic_feature_knn.accuracy_graph_values)
-    PlotGraph.show_graph(['k=9'],filename='feature_selection')
+    PlotGraph.show_graph(['k=9'], filename='feature_selection')

@@ -1,3 +1,8 @@
+"""
+Author: Dheeraj Alimchandani
+Student ID : R00182505
+"""
+
 from knn_model import *
 
 
@@ -10,8 +15,9 @@ class BasicKnn:
         :param _plotgraph: The check for plotting graph
 
         """
-        self.knn_model = Knnmodel(train_file, test_file)
-        self.knn_model.dataset(10)
+        self.knn_model = Knnmodel(train_file, test_file)    # Initializing KNN Model
+        self.knn_model.dataset(10)  # Creating the Dataset
+        # Calculating the Distances
         self.results = np.apply_along_axis(self.knn_model.calculateDistances, 1, self.knn_model.test_data,
                                            self.knn_model.train_data)
 
@@ -23,8 +29,10 @@ class BasicKnn:
         """
         Calculates the euclidean distance between each query instance and the train dataset and returns accuracy
         prediction
-        :return:  Accuracy of the prediction
+        :param k_value: k nearest neighbours
+        :return: Accuracy of the prediction
         """
+
         try:
             if k_value < 1:
                 raise InvalidKValue(k_value)
@@ -34,9 +42,9 @@ class BasicKnn:
             return
 
         try:
-            percentage = self.knn_model.basic_knn_percentage(self.results, k_value)
+            percentage = self.knn_model.basic_knn_percentage(self.results, k_value)     # Accuracy Percentage
             print(f'The Basic KNN model with k = {k_value}, has an accuracy of {round(percentage, 2)} %')
-            if self.plot_graph:
+            if self.plot_graph:     # Plot Graph
                 self.accuracy_graph_values.append(round(percentage, 2))
                 self.k_graph_values.append(k_value)
 
@@ -45,12 +53,10 @@ class BasicKnn:
 
 
 if __name__ == '__main__':
-
-    PLOT_GRAPH = True
-    LIMIT = 60
-
-    basic_knn = BasicKnn('trainingData_classification.csv', 'testData_classification.csv', _plotgraph=PLOT_GRAPH)
-    for k in range(1, LIMIT+1):
+    # Initializing the Basic KNN Model
+    basic_knn = BasicKnn(Parameters.TRAIN_DATA_CLASSIFICATION, Parameters.TEST_DATA_CLASSIFICATION,
+                         _plotgraph=Parameters.PLOT_GRAPH)
+    for k in range(1, Parameters.LIMIT+1):
         basic_knn.prediction(k)
 
     PlotGraph.plot_graph(basic_knn.k_graph_values, basic_knn.accuracy_graph_values)
