@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class InvalidKValue(Exception):
@@ -51,6 +52,18 @@ class Knnmodel:
         max_features_train = np.amax(scaling_train_data, axis=0)
         self.scaled_train_data = (scaling_train_data - min_features_train) / (max_features_train - min_features_train)
         self.scaled_test_data = (scaling_test_data - min_features_train) / (max_features_train - min_features_train)
+
+    def manhattanDistance(self, query_instance, feature_list):
+        """
+
+        :param query_instance: Contains the single instance of the test data (1D Numpy Array)
+        :param feature_list:  Contains all the features of the training data (2D Numpy array)
+        :return: Manhatan distance between the training and query Instances , Sorted Indices Array
+        """
+        feature_difference = feature_list - query_instance
+        manhattan_distance = np.sum(np.absolute(feature_difference), axis=1) # Manhattan Distance Calculation
+        sorted_distance_index = np.argsort(manhattan_distance)  # Sorted array of distance indices
+        return manhattan_distance, sorted_distance_index
 
     def calculateDistances(self, query_instance, feature_list):
         """
@@ -188,3 +201,24 @@ class Knnmodel:
         r_square = 1-(ssr/sst)
 
         return r_square
+
+
+class PlotGraph:
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def plot_graph(k_graph_values, accuracy_graph_values):
+        plt.plot(k_graph_values, accuracy_graph_values,marker='o')
+
+    @staticmethod
+    def show_graph(legend = [], filename='Dummy_KNN', n_value = 1):
+        plt.ylabel('Accuracy Percentage')
+        plt.xlabel('Value of K')
+        plt.legend(legend)
+        if n_value != 1:
+            plt.title(f'n = {n_value}')
+        plt.savefig(filename)
+
+        plt.show()

@@ -4,7 +4,7 @@ import time
 
 class WeightedRegressionKnn:
 
-    def __init__(self, train_file, test_file):
+    def __init__(self, train_file, test_file, _plotgraph=False):
         """
         :param train_file: The filename for the training instance
         :param test_file:  The filename  for  the test instance
@@ -17,6 +17,9 @@ class WeightedRegressionKnn:
 
         self.results = np.apply_along_axis(self.knn_model.calculateDistances, 1, self.knn_model.test_data,
                                            self.knn_model.train_data)
+        self.accuracy_graph_values = []
+        self.k_graph_values = []
+        self.plot_graph = _plotgraph
 
     def prediction(self, k_value=1, n_value=1):
         """
@@ -35,11 +38,24 @@ class WeightedRegressionKnn:
         try:
             percentage = self.knn_model.weighted_regression_knn_percentage(self.results, k_value, n_value)
             print(f'The Weighted KNN Regression model with k = {k_value} and n = {n_value}, '
-                  f'has and accuracy of {round(percentage, 2)} %')
+                  f'has an accuracy of {round(percentage, 2)} %')
+
+            if self.plot_graph:
+                self.accuracy_graph_values.append(round(percentage, 2))
+                self.k_graph_values.append(k_value)
+
         except Exception as e:
             print(f'Error finding accuracy for K = {k_value}, error {e}')
 
 
 if __name__ == '__main__':
-    weighted_regression_knn = WeightedRegressionKnn('trainingData_regression.csv', 'testData_regression.csv')
-    weighted_regression_knn.prediction(3, 3)
+    PLOT_GRAPH = True
+    LEGEND = []
+    n = 2
+    LIMIT = 60
+    weighted_regression_knn = WeightedRegressionKnn('trainingData_regression.csv', 'testData_regression.csv', _plotgraph=PLOT_GRAPH)
+    for k in range(1, LIMIT + 1):
+        weighted_regression_knn.prediction(k, n)
+
+    PlotGraph.plot_graph(weighted_regression_knn.k_graph_values, weighted_regression_knn.accuracy_graph_values)
+    PlotGraph.show_graph(LEGEND, filename='Regression_graph', n_value= n)

@@ -2,9 +2,10 @@ from knn_model import *
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 
+
 class FeatureSelectionKnn:
 
-    def __init__(self,train_file, test_file):
+    def __init__(self,train_file, test_file, _plotgraph=False):
         """
         :param train_file: The filename for the training instance
         :param test_file:  The filename  for  the test instance
@@ -16,6 +17,10 @@ class FeatureSelectionKnn:
         self.train_data_updated = np.empty
         self.test_data_updated = np.empty
         self.results = None
+
+        self.accuracy_graph_values = []
+        self.f_graph_values = []
+        self.plot_graph = _plotgraph
 
     def feature_selection(self,number_features=5):
         selector = SelectKBest(chi2, k=number_features)
@@ -30,13 +35,13 @@ class FeatureSelectionKnn:
 
         self.test_data_updated = self.knn_model.test_data[:, new_features]
         self.distance_calculation()
+        self.f_graph_values.append(len(new_features))
         print(f'Number of features selected : {len(new_features)}')
         print(f'Selected features [Columns]: {new_features}')
 
     def distance_calculation(self):
         self.results = np.apply_along_axis(self.knn_model.calculateDistances, 1, self.test_data_updated,
                                            self.train_data_updated)
-
 
     def prediction(self, k_value=1):
         """
@@ -54,18 +59,21 @@ class FeatureSelectionKnn:
 
         try:
             percentage = self.knn_model.basic_knn_percentage(self.results, k_value)
-            print(f'The Basic KNN model with k = {k_value}, has and accuracy of {round(percentage,2)} %')
+            print(f'The Basic KNN model with k = {k_value}, has an accuracy of {round(percentage,2)} %')
+            self.accuracy_graph_values.append(round(percentage,2))
 
         except Exception as e:
             print(f'Error finding accuracy for K = {k_value}, error {e}')
 
 
 if __name__ == '__main__':
-    basic_knn = FeatureSelectionKnn('trainingData_classification.csv', 'testData_classification.csv')
-    basic_knn.feature_selection(8)
-    # for k in range(1,12):
-    basic_knn.prediction(2)
+    PLOT_GRAPH = True
+    LIMIT = 10
+    basic_feature_knn = FeatureSelectionKnn('trainingData_classification.csv', 'testData_classification.csv',  _plotgraph=PLOT_GRAPH)
 
+    for f in range(1,LIMIT+1):
+        basic_feature_knn.feature_selection(f)
+        basic_feature_knn.prediction(9)
 
-
-
+    PlotGraph.plot_graph(basic_feature_knn.f_graph_values, basic_feature_knn.accuracy_graph_values)
+    PlotGraph.show_graph(['k=9'],filename='feature_selection')
